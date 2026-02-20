@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Kualitas Udara</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Background Decorations -->
+    <div class="bg-decoration-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1>Dashboard Pemantauan Kualitas Udara</h1>
+            </div>
+            <div class="header-actions">
+                <div class="status-badge" id="connection-status">
+                    <span class="dot"></span> Menghubungkan...
+                </div>
+                <button onclick="downloadData()" class="btn-download">
+                    Download Data
+                </button>
+                <button onclick="document.getElementById('config-modal').style.display='flex'"
+                    class="btn-config">⚙️</button>
+            </div>
+        </header>
+
+        <!-- Config Modal -->
+        <div id="config-modal" class="modal">
+            <div class="modal-content">
+                <h2>Konfigurasi Supabase</h2>
+                <p>Masukkan detail proyek Supabase Anda untuk monitoring global</p>
+                <input type="text" id="supabase-url" placeholder="https://xyz.supabase.co">
+                <input type="text" id="supabase-key" placeholder="Anon / Public API Key">
+                <button id="save-config">Mulai Monitoring</button>
+            </div>
+        </div>
+
+        <main class="dashboard-layout">
+
+            <!-- KELOMPOK 1: STATUS UTAMA ISPU -->
+            <section class="section-group">
+                <div class="section-title">Status Kualitas Udara (ISPU)</div>
+                <div class="summary-card">
+                    <div class="indicator-dot-large" id="ind-main"></div>
+                    <div class="status-content-main">
+                        <h3>Kondisi Saat Ini</h3>
+                        <div class="big-status" id="aqi-status">--</div>
+                        <div class="status-label">Indeks Standar Pencemar Udara</div>
+                        <div class="last-update">Update: <span id="last-update">--</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KELOMPOK 2: NILAI ISPU PER SENSOR -->
+            <section class="section-group">
+                <div class="section-title">Nilai ISPU Gas</div>
+                <div class="grid-3-col">
+                    <div class="card ispu-card">
+                        <div class="indicator-dot-side" id="ind-ispu-pm25"></div>
+                        <div class="card-content">
+                            <div class="card-title">ISPU PM2.5</div>
+                            <div class="card-value" id="ispu-pm25">--</div>
+                        </div>
+                    </div>
+                    <div class="card ispu-card">
+                        <div class="indicator-dot-side" id="ind-ispu-pm10"></div>
+                        <div class="card-content">
+                            <div class="card-title">ISPU PM10</div>
+                            <div class="card-value" id="ispu-pm10">--</div>
+                        </div>
+                    </div>
+                    <div class="card ispu-card">
+                        <div class="indicator-dot-side" id="ind-ispu-co"></div>
+                        <div class="card-content">
+                            <div class="card-title">ISPU CO</div>
+                            <div class="card-value" id="ispu-co">--</div>
+                        </div>
+                    </div>
+                    <div class="card ispu-card">
+                        <div class="indicator-dot-side" id="ind-ispu-so2"></div>
+                        <div class="card-content">
+                            <div class="card-title">ISPU SO2</div>
+                            <div class="card-value" id="ispu-so2">--</div>
+                        </div>
+                    </div>
+                    <div class="card ispu-card">
+                        <div class="indicator-dot-side" id="ind-ispu-o3"></div>
+                        <div class="card-content">
+                            <div class="card-title">ISPU O3</div>
+                            <div class="card-value" id="ispu-o3">--</div>
+                        </div>
+                    </div>
+                    <div class="card ispu-card">
+                        <div class="indicator-dot-side" id="ind-ispu-no2"></div>
+                        <div class="card-content">
+                            <div class="card-title">ISPU NO2</div>
+                            <div class="card-value" id="ispu-no2">--</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KELOMPOK 3: NILAI KONSENTRASI (µg/m³) -->
+            <section class="section-group">
+                <div class="section-title">Nilai Konsentrasi Lingkungan</div>
+                <div class="grid-3-col">
+                    <div class="card val-card">
+                        <div class="indicator-dot-side" id="ind-val-pm25"></div>
+                        <div class="card-content">
+                            <div class="card-title">PM2.5</div>
+                            <div class="card-value"><span id="val-pm25">--</span> <small>µg/m³</small></div>
+                        </div>
+                    </div>
+                    <div class="card val-card">
+                        <div class="indicator-dot-side" id="ind-val-pm10"></div>
+                        <div class="card-content">
+                            <div class="card-title">PM10</div>
+                            <div class="card-value"><span id="val-pm10">--</span> <small>µg/m³</small></div>
+                        </div>
+                    </div>
+                    <div class="card val-card">
+                        <div class="indicator-dot-side" id="ind-val-co"></div>
+                        <div class="card-content">
+                            <div class="card-title">CO</div>
+                            <div class="card-value"><span id="val-co">--</span> <small>µg/m³</small></div>
+                        </div>
+                    </div>
+                    <div class="card val-card">
+                        <div class="indicator-dot-side" id="ind-val-so2"></div>
+                        <div class="card-content">
+                            <div class="card-title">SO2</div>
+                            <div class="card-value"><span id="val-so2">--</span> <small>µg/m³</small></div>
+                        </div>
+                    </div>
+                    <div class="card val-card">
+                        <div class="indicator-dot-side" id="ind-val-o3"></div>
+                        <div class="card-content">
+                            <div class="card-title">O3</div>
+                            <div class="card-value"><span id="val-o3">--</span> <small>µg/m³</small></div>
+                        </div>
+                    </div>
+                    <div class="card val-card">
+                        <div class="indicator-dot-side" id="ind-val-no2"></div>
+                        <div class="card-content">
+                            <div class="card-title">NO2</div>
+                            <div class="card-value"><span id="val-no2">--</span> <small>µg/m³</small></div>
+                        </div>
+                    </div>
+                    <div class="card val-card env">
+                        <div class="indicator-dot-side" id="ind-val-temp"></div>
+                        <div class="card-content">
+                            <div class="card-title">Suhu</div>
+                            <div class="card-value"><span id="val-temp">--</span> <small>°C</small></div>
+                        </div>
+                    </div>
+                    <div class="card val-card env">
+                        <div class="indicator-dot-side" id="ind-val-hum"></div>
+                        <div class="card-content">
+                            <div class="card-title">Kelembapan</div>
+                            <div class="card-value"><span id="val-hum">--</span> <small>%</small></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KELOMPOK 4: GRAFIK -->
+            <section class="section-group">
+                <div class="section-title">Grafik Historis</div>
+                <div class="grid-2-col">
+                    <div class="card chart-card">
+                        <div class="chart-header">Grafik PM2.5</div>
+                        <div class="chart-container"><canvas id="chart-pm25"></canvas></div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="chart-header">Grafik PM10</div>
+                        <div class="chart-container"><canvas id="chart-pm10"></canvas></div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="chart-header">Grafik CO</div>
+                        <div class="chart-container"><canvas id="chart-co"></canvas></div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="chart-header">Grafik SO2</div>
+                        <div class="chart-container"><canvas id="chart-so2"></canvas></div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="chart-header">Grafik O3</div>
+                        <div class="chart-container"><canvas id="chart-o3"></canvas></div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="chart-header">Grafik NO2</div>
+                        <div class="chart-container"><canvas id="chart-no2"></canvas></div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="chart-header">Grafik Suhu</div>
+                        <div class="chart-container"><canvas id="chart-temp"></canvas></div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="chart-header">Grafik Kelembapan</div>
+                        <div class="chart-container"><canvas id="chart-hum"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <img src="images/logos.png" alt="Logos" class="footer-logo">
+                <div class="footer-buttons">
+                    <button class="share-btn" onclick="shareCurrentConfig()"
+                        style="width: auto; background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; margin-bottom: 10px;">Bagikan
+                        Dashboard</button>
+                    <button class="reset-btn" onclick="clearConfig()">Ganti Database</button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
